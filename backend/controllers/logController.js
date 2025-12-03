@@ -1,5 +1,4 @@
 const Log = require("../models/Log");
-const { logQueue } = require("../queues/logQueue");
 const redis = require("../redisClient");
 
 // Create a new log entry
@@ -7,7 +6,7 @@ exports.createLog = async (req, res) => {
   try {
     const log = await Log.create(req.body);
 
-    // publish to redis channel
+    // publish to redis
     redis.publish("logs", JSON.stringify(log));
 
     res.status(201).json({ success: true, log });
@@ -15,6 +14,7 @@ exports.createLog = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 
 // Get all logs

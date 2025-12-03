@@ -18,5 +18,9 @@ app.use("/api", testRoute);
 const logRoutes = require("./routes/logRoutes");
 app.use("/api", logRoutes);
 
+const insightRoutes = require("./routes/insightRoutes");
+app.use("/api", insightRoutes);
+
+
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
