@@ -1,25 +1,41 @@
 // frontend/src/InsightsDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { fetchInsights } from "./api";
+import { io } from "socket.io-client";
+
 
 export default function InsightsDashboard() {
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
+useEffect(() => {
+  // 1. Load existing insights first
+  const loadInsights = async () => {
+    try {
+      const data = await fetchInsights("demo");
+      setInsights(data);
+    } catch (err) {
+      console.error("Failed to fetch insights", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    const loadInsights = async () => {
-      try {
-        const data = await fetchInsights("demo");
-        setInsights(data);
-      } catch (err) {
-        console.error("Failed to fetch insights", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  loadInsights();
 
-    loadInsights();
-  }, []);
+  // 2. Connect to Socket.IO backend
+  const socket = io("http://localhost:5000");
+
+  // 3. Listen for real-time insights
+  socket.on("new-insight", (newInsight) => {
+    console.log("Real-time insight received:", newInsight);
+    setInsights((prev) => [newInsight, ...prev]);
+  });
+
+  // 4. Clean up socket on unmount
+  return () => {
+    socket.disconnect();
+  };
+}, []);
 
   if (loading) return <div>Loading insights...</div>;
 

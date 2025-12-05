@@ -1,26 +1,51 @@
+// ----------------- IMPORTS -----------------
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
-const connectDB = require("./config/db");
+const http = require("http");
+const { Server } = require("socket.io");
 
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// connect DB
-connectDB();
-
-// test route
-const testRoute = require("./routes/testRoute");
-app.use("/api", testRoute);
-
-// log routes
+// ROUTES
 const logRoutes = require("./routes/logRoutes");
-app.use("/api", logRoutes);
-
 const insightRoutes = require("./routes/insightRoutes");
-app.use("/api", insightRoutes);
+
+// ----------------- CREATE EXPRESS APP -----------------
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// ----------------- MONGODB CONNECTION -----------------
+mongoose
+  .connect("mongodb://127.0.0.1:27017/dcmlm")
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB error:", err));
+
+// ----------------- API ROUTES -----------------
+app.use("/api/logs", logRoutes);
+app.use("/api/insights", insightRoutes);
+
+// ----------------- CREATE SERVER + SOCKET.IO -----------------
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+const socketManager = require("./socket");
+socketManager.init(io); // store io instance
 
 
+// Handle socket connections
+io.on("connection", (socket) => {
+  console.log("Frontend connected via socket:", socket.id);
+});
+
+// Export io so controllers can emit events
+
+// ----------------- START SERVER -----------------
 const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

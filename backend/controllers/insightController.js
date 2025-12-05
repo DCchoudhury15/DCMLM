@@ -1,21 +1,34 @@
-// backend/controllers/insightController.js
 const Insight = require("../models/Insight");
+const { getIO } = require("../socket");
 
+// CREATE INSIGHT (called by worker)
 exports.createInsight = async (req, res) => {
   try {
-    const insight = await Insight.create(req.body);
-    return res.status(201).json({ success: true, insight });
+    const insight = new Insight(req.body);
+    const savedInsight = await insight.save();
+
+    // 🔥 EMIT REAL-TIME EVENT
+getIO().emit("new-insight", savedInsight);
+
+    res.json({ success: true, insight: savedInsight });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    console.error("Insight save error:", err);
+    res.status(500).json({ success: false, error: "Failed to create insight" });
   }
 };
 
+// GET INSIGHTS FOR A PROJECT
 exports.getInsights = async (req, res) => {
   try {
-    const q = { ...(req.query.projectId ? { projectId: req.query.projectId } : {}) };
-    const insights = await Insight.find(q).sort({ detectedAt: -1 }).limit(200);
-    return res.status(200).json({ success: true, insights });
+    const { projectId } = req.query;
+
+    const insights = await Insight.find({ projectId }).sort({
+      detectedAt: -1
+    });
+
+    res.json({ success: true, insights });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    console.error("Insight fetch error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch insights" });
   }
 };

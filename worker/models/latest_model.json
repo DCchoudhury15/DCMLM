@@ -1,1 +1,1 @@
-{"model_path": "models/model_20251203T082829Z.joblib", "model_version": "v20251203T082829Z", "trained_at": "20251203T082829Z", "features": ["message_length", "num_words", "hour", "is_error", "cpu", "mem"]}
+{"model_path": "models/model_20251203T093023Z.joblib", "model_version": "v20251203T093023Z", "trained_at": "20251203T093023Z", "features": ["message_length", "num_words", "hour", "is_error", "cpu", "mem"]}
